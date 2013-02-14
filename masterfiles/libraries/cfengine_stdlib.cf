@@ -438,18 +438,23 @@ vars:
   # Be careful if the index string contains funny chars
   "cindex[$(index)]" string => canonify("$(index)");
 
+field_edits:
+   "\s*$(index)\s.*"
+      edit_field => line("(^|\s)$(index)\s*", "2", "$($(v)[$(index)])","set"),
+      classes => if_ok("$(cindex[$(index)])_is_ok");
+
 replace_patterns:
   # If the line is there, maybe commented out, uncomment and replace with
   # the correct value
   "^\s*($(index)\s+(?!$($(v)[$(index)])$).*|# ?$(index)\s+.*)$"
-         comment => "Correct the value",
+    comment => "Correct the value",
     replace_with => value("$(index) $($(v)[$(index)])"),
-         classes => always("replace_attempted_$(cindex[$(index)])");
+    classes => always("replace_attempted_$(cindex[$(index)])"),
+    ifvarclass => "!$(cindex[$(index)])_is_ok";
 
 insert_lines:
   "$(index) $($(v)[$(index)])"
     ifvarclass => "replace_attempted_$(cindex[$(index)])";
-
 }
 
 bundle edit_line set_config_values_matching(v,pat)
